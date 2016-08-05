@@ -194,15 +194,6 @@ L.TileLayer.GeoJSON = L.TileLayer.Ajax.extend({
         if (this.options.unique && typeof(this.options.unique) === 'function') {
             var key = this.options.unique(geojson);
 
-            // When creating the layer for a unique key,
-            // Force the geojson to be a geometry collection
-            if (!(key in this._keyLayers && geojson.geometry.type !== 'GeometryCollection')) {
-                geojson.geometry = {
-                    type: 'GeometryCollection',
-                    geometries: [geojson.geometry]
-                };
-            }
-
             // Transform the geojson into a new Layer
             try {
                 incomingLayer = L.GeoJSON.geometryToLayer(geojson, options.pointToLayer, options.coordsToLatLng);
@@ -213,10 +204,9 @@ L.TileLayer.GeoJSON = L.TileLayer.Ajax.extend({
             }
 
             incomingLayer.feature = L.GeoJSON.asFeature(geojson);
-            // Add the incoming Layer to existing key's GeometryCollection
+            // Do not add existing objects twice
             if (key in this._keyLayers) {
-                parentLayer = this._keyLayers[key];
-                parentLayer.feature.geometry.geometries.push(geojson.geometry);
+                return;
             }
             // Convert the incoming GeoJSON feature into a new GeometryCollection layer
             else {
